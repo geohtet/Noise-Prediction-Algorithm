@@ -24,7 +24,7 @@ This point should be the representative point for all project activities' noise 
 <h3>Receptor Areas/Polygon (residential & industrial)</h3>
 <p>Receptors Layer must be polygon feature with no gemetory errors.
 
-Attribute field & names must be standardized for model calculation steps. Field names (Unique id, landuse) are mandatory for tool. Others can be added for your study purposes optionally.
+Attribute field & names must be standardized for model calculation steps. Field names (Unique id, landuse) are mandatory for tool. Before running this algorithm, please make test with 'Sample Data' via Get Sampe Data' algorithm. Others can be added for your study purposes optionally.
 
 Remark:
 Polygon can be 
