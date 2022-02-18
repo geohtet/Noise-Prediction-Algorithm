@@ -49,7 +49,7 @@ CRS should be PCS for some calculation in model algroithm such as viewshed analy
 
 For example:
 - WGS84 UTM 46N</p>
-<h3>HGrid Value For Output Resolution</h3>
+<h3>Grid Value For Output Resolution</h3>
 <p>Horizontal Grid Length Meter
 Vertical Grid Length Meter
 
