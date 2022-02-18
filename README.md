@@ -14,7 +14,8 @@ Factors For consideration
 Other factors such as meteorological conditions (particularly wind speed and direction) and atmospheric absorption can also influence the level of noise received. The estimation of the effects of these factors is complicated, not least because of interaction between these factors, and is beyond the scope of this standard.</p>
 <h2>Input parameters</h2>
 <h3>Dem File (PCS)</h3>
-<p>Elevation (dem) can get easily from OpenTopgraphy Dem Downloader Plugin by extent(aoi). Download via https://github.com/knwin/OpenTopography-DEM-Downloader-qgis-plugin
+<p>Elevation (dem) can get easily from OpenTopgraphy Dem Downloader Plugin by extent(aoi). SRTM30m is recommended to use for large scale noise mapping.
+<p>Download via https://github.com/knwin/OpenTopography-DEM-Downloader-qgis-plugin.
 <p></p>
 <h3>Creating Noise Source Point</h3>
 <p>Point Source or Observer Location
@@ -27,8 +28,10 @@ Attribute field & names must be standardized for model calculation steps. Field 
 
 Remark:
 Polygon can be 
-- rectangle extent
 - landuse area
+- Categories accepted by model: residential, industrial
+- Case Sensitive
+- Wrong attribute and feild names, values will be invalid.
 </p>
 <h3>Noise Source Height</h3>
 <p>Height of noise source (observer point)
