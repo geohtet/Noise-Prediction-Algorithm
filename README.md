@@ -1,4 +1,4 @@
-# Noise-Prediction-Algorithm
+# Noise-Prediction-Algorithm (QGIS Version 3.16 required*)
 <html><body><h2>Algorithm description</h2>
 <p>Noise Estimation From Point Source Algorithm
 British Standard - BS 5228-1:2009+A1:2014
