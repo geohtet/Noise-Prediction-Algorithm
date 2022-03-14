@@ -36,7 +36,7 @@ import inspect
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon,QDesktopServices
 
-from qgis.core import QgsProcessingAlgorithm, QgsApplication
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QUrl
 import processing
 from qgis.core import QgsProcessingAlgorithm, QgsApplication
 from .Noise_Prediction_provider import NoisePredictionProvider
@@ -88,4 +88,5 @@ class NoisePredictionPlugin(object):
         QDesktopServices.openUrl(QUrl(DOC_PLUGIN_URL))
         
     def run(self):
-        processing.execAlgorithmDialog("Estimate Noise Level By Distance:Calculate-BS:5228")
+        processing.execAlgorithmDialog("Noise Prediction From Point Source:Calculate-BS:5228")
+    

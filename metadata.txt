@@ -4,7 +4,7 @@
 
 [general]
 name=Noise Prediction
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.16
 description=This plugin estimates the noisel level by distances and barriers as BS:5228 standard.
 version=1.0
 author=Htet Arkar Soe
@@ -12,22 +12,30 @@ email=htetarkar.env.2016@gmail.com
 
 about=Noise Estimation From Point Source Algorithm British Standard - BS 5228-1:2009+A1:2014 Factors For consideration 1) the sound power outputs of processes and plant; 2) the periods of operation of processes and plant; 3) the distances from sources to receiver; 4) the presence of screening by barriers; 5) the reflection of sound; 6) soft ground attenuation. Other factors such as meteorological conditions (particularly wind speed and direction) and atmospheric absorption can also influence the level of noise received. The estimation of the effects of these factors is complicated, not least because of interaction between these factors, and is beyond the scope of this standard.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/geohtet/Noise-Prediction-Algorithm/issues
+repository=https://github.com/geohtet/Noise-Prediction-Algorithm
 # End of mandatory metadata
 
 # Recommended items:
 
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=1.0
+  -change minimum qgis version 3.16
+  -added two parameters for soft & hard ground attenuation
+  -changed to fieldname 'landuse' to 'zone'
+  -changed style set
+  -updated screening calculation steps
+  -added more sample data to calculate new parameters
+  -updated help 'README.md' in github
+  -upgraded minimum QGIS version to 3.16
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python, noise, bs5228
 
-homepage=http://homepage
+homepage=https://github.com/geohtet/Noise-Prediction-Algorithm/blob/main/README.md
 category=Analysis
-icon=icon.png
+icon=logo.png
 # experimental flag
 experimental=False
 

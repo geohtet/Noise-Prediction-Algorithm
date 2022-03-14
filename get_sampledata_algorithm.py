@@ -48,11 +48,15 @@ class GetSampleData(QgsProcessingAlgorithm):
         pass
     def processAlgorithm(self, parameters, context, model_feedback):
         results = {}
-        Receptor = os.path.join(os.path.dirname(__file__), 'dataset/receptors_sample.shp')
+        Receptor = os.path.join(os.path.dirname(__file__), 'dataset/receptors_zone_sample.shp')
         Dem = os.path.join(os.path.dirname(__file__), 'dataset/srtm30m_sample.tif')
+        Stat_lulc = os.path.join(os.path.dirname(__file__), 'dataset/receptors_lulcstatistic_sample.csv')
+        lulc = os.path.join(os.path.dirname(__file__), 'dataset/receptors_lulc_sample.shp')
 
         iface.addRasterLayer(Dem,'')
         iface.addVectorLayer(Receptor,'','ogr')
+        iface.addVectorLayer(lulc,'','ogr')
+        iface.addVectorLayer(Stat_lulc,'','ogr')
         return results
 
     def name(self):

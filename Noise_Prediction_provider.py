@@ -36,6 +36,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProcessingProvider
 from .Noise_Prediction_algorithm import Calculatebs5228
 from .get_sampledata_algorithm import GetSampleData
+from .threshold_limit_algorithm import threshold_algorithm
 
 
 class NoisePredictionProvider(QgsProcessingProvider):
@@ -58,6 +59,7 @@ class NoisePredictionProvider(QgsProcessingProvider):
         Loads all algorithms belonging to this provider.
         """
         self.addAlgorithm(Calculatebs5228())
+        self.addAlgorithm(threshold_algorithm())
         self.addAlgorithm(GetSampleData())
         # add additional algorithms here
         # self.addAlgorithm(MyOtherAlgorithm())
@@ -68,7 +70,7 @@ class NoisePredictionProvider(QgsProcessingProvider):
         string should be a unique, short, character only string, eg "qgis" or
         "gdal". This string should not be localised.
         """
-        return 'Estimate Noise Level By Distance'
+        return 'Noise Prediction From Point Source'
 
     def name(self):
         """
@@ -77,7 +79,7 @@ class NoisePredictionProvider(QgsProcessingProvider):
 
         This string should be short (e.g. "Lastools") and localised.
         """
-        return self.tr('Estimate Noise Level By Distance')
+        return self.tr('Noise Prediction From Point Source')
 
     def icon(self):
         """

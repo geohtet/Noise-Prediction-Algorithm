@@ -47,32 +47,35 @@ from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFeatureSink
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterDefinition
-from qgis.core import QgsExpression
+from qgis.core import QgsExpression,QgsProcessingParameterEnum
 import processing
 
 
 class Calculatebs5228(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterRasterLayer('DemFile', 'Dem File(.tif)', defaultValue=None))
-        self.addParameter(QgsProcessingParameterPoint('CreatingNoiseSourcePoint', 'Create Noise Source On Map Canvas', defaultValue=''))
+        self.addParameter(QgsProcessingParameterRasterLayer('DemFile', 'Digital Elevation Model - Dem File(.tif)', defaultValue=None))
+        self.addParameter(QgsProcessingParameterPoint('CreatingNoiseSourcePoint', 'Create Noise Source Point On Map Canvas', defaultValue=''))
         self.addParameter(QgsProcessingParameterVectorLayer('Receptorlanduse', 'Receptor Areas/Polygon (residential & industrial)', types=[QgsProcessing.TypeVectorPolygon], defaultValue=None))
         self.addParameter(QgsProcessingParameterNumber('ObserverHeight', 'Noise Source Height (meter)', type=QgsProcessingParameterNumber.Double, minValue=0, maxValue=1000, defaultValue=None))
         param = QgsProcessingParameterCrs('CRS', 'CRS (Choose PCS)', defaultValue='EPSG:32646')
         param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(param)
-        self.addParameter(QgsProcessingParameterNumber('HorizontalGridValue', 'HGrid Value For Output Resolution (meter)', type=QgsProcessingParameterNumber.Integer, minValue=30, maxValue=1000, defaultValue=200))
-        self.addParameter(QgsProcessingParameterNumber('HorizontalGridValue (3)', 'VGrid Value For Output Resolution (meter)', type=QgsProcessingParameterNumber.Integer, minValue=30, maxValue=1000, defaultValue=200))
-        self.addParameter(QgsProcessingParameterNumber('NoiseLevelFromSoruce', 'Noise Level From Soruce (dBA)', type=QgsProcessingParameterNumber.Integer, minValue=0, maxValue=200, defaultValue=None))
-        self.addParameter(QgsProcessingParameterNumber('NoiseLevelFromSoruce (2)', 'Reflection Value (Soft Ground =0 or Hard Ground =3)(dBA)', type=QgsProcessingParameterNumber.Integer, minValue=0, maxValue=10, defaultValue=None))
-        self.addParameter(QgsProcessingParameterNumber('NoiseLevelFromSoruce (2) (2)', 'Project Duration Hour (1 - 24)', type=QgsProcessingParameterNumber.Integer, minValue=1, maxValue=48, defaultValue=None))
-        self.addParameter(QgsProcessingParameterNumber('NoiseLevelFromSoruce (2) (2) (2)', 'Activity Operation Hour (1 -24)', type=QgsProcessingParameterNumber.Integer, minValue=1, maxValue=48, defaultValue=None))
-        #self.addParameter(QgsProcessingParameterFile('style', 'Style For CalculatedNoise (.qml)', optional=True, behavior=QgsProcessingParameterFile.File, fileFilter='All Files (*.*)', defaultValue=None))
-        #self.addParameter(QgsProcessingParameterFile('style (2)', 'Style For ThresholdNoise (.qml)', optional=True, behavior=QgsProcessingParameterFile.File, fileFilter='All Files (*.*)', defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('NoiseSource', 'Noise Source Point', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('NoiselevelByDistance', 'NoiseLevel By Distance', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, supportsAppend=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('NoiseLevelByThredsholdLimit', 'Noise Level By Thredshold Limit', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, supportsAppend=True, defaultValue=None))
+        self.addParameter(QgsProcessingParameterNumber('HorizontalGridValue', 'Horizontal Haxagon Grid Value For Output Resolution (meter) **Should exceed DEM resolution', type=QgsProcessingParameterNumber.Integer, minValue=30, maxValue=1000, defaultValue=200))
+        self.addParameter(QgsProcessingParameterNumber('VerticalGridValue', 'Vertical Haxagon Grid Value For Output Resolution (meter) **Should exceed DEM resolution', type=QgsProcessingParameterNumber.Integer, minValue=30, maxValue=1000, defaultValue=200))
+        self.addParameter(QgsProcessingParameterNumber('NoiseLevelFromSoruce', 'Significant Noise Level From Activity Soruce (dBA)', type=QgsProcessingParameterNumber.Integer, minValue=0, maxValue=200, defaultValue=None))
+        self.addParameter(QgsProcessingParameterNumber('ReflectionValue', 'Reflection Value (0 or 3)', type=QgsProcessingParameterNumber.Integer, minValue=0, maxValue=10, defaultValue=None))
+        self.addParameter(QgsProcessingParameterNumber('ProjectDuration', 'Project Duration Hour (1 - 24)', type=QgsProcessingParameterNumber.Integer, minValue=1, maxValue=48, defaultValue=None))
+        self.addParameter(QgsProcessingParameterNumber('ActivityDuration', 'Activity Operation Hour (1 -24)', type=QgsProcessingParameterNumber.Integer, minValue=1, maxValue=48, defaultValue=None))
+        self.addParameter(QgsProcessingParameterFeatureSink('NoiseSource', 'Noise Source Point (set style)', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
+        self.addParameter(QgsProcessingParameterFeatureSink('NoiselevelByDistance', 'NoiseLevel By Distance (set style)', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, supportsAppend=True, defaultValue=None))
+        #self.addParameter(QgsProcessingParameterFeatureSink('NoiseLevelByThredsholdLimit', 'Noise Level By Thredshold Limit (set style)', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, supportsAppend=True, defaultValue=None))
         #self.addParameter(QgsProcessingParameterBoolean('VERBOSE_LOG', 'Verbose logging', optional=True, defaultValue=False))
+        self.addParameter(QgsProcessingParameterEnum('Ground', 'Select Ground Type For Noise Attenuation', 
+                            options=['soft ground','hard ground'], 
+                            allowMultiple=False, defaultValue=None
+                            ))
+        self.addParameter(QgsProcessingParameterNumber('SoftPercent', 'Soft Ground Percentage (0-100) *Zero Value for worst case scenario', type=QgsProcessingParameterNumber.Integer, minValue=0, maxValue=100, defaultValue=25))
 
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
@@ -174,7 +177,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'HSPACING': parameters['HorizontalGridValue'],
             'TYPE': 4,
             'VOVERLAY': 0,
-            'VSPACING': parameters['HorizontalGridValue (3)'],
+            'VSPACING': parameters['VerticalGridValue'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['CreateGrid'] = processing.run('native:creategrid', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
@@ -229,7 +232,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'INPUT': outputs['Centroids']['OUTPUT'],
             'INPUT_FIELDS': QgsExpression('\'id\'').evaluate(),
             'OVERLAY': outputs['Reproject_receptor']['OUTPUT'],
-            'OVERLAY_FIELDS': QgsExpression('\'landuse\'').evaluate(),
+            'OVERLAY_FIELDS': QgsExpression('\'zone\'').evaluate(),
             'OVERLAY_FIELDS_PREFIX': '',
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
@@ -318,21 +321,50 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             return {}
 
         # calculate_distdBA
-        alg_params = {
-            'FIELD_LENGTH': 5,
-            'FIELD_NAME': 'dBA_dist',
-            'FIELD_PRECISION': 0,
-            'FIELD_TYPE': 1,
-            'FORMULA': '25*log10( \"dist_m\" /10)-2',
-            'INPUT': outputs['Calculate_distmeter']['OUTPUT'],
-            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-        }
+        if parameters['Ground'] == 0:
+            alg_params = {
+                'FIELD_LENGTH': 5,
+                'FIELD_NAME': 'dBA_dist',
+                'FIELD_PRECISION': 0,
+                'FIELD_TYPE': 1,
+                'FORMULA': '25*log10( \"dist_m\" /10)-2',
+                'INPUT': outputs['Calculate_distmeter']['OUTPUT'],
+                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+            }
+        elif parameters['Ground'] == 1:
+            alg_params = {
+                'FIELD_LENGTH': 5,
+                'FIELD_NAME': 'dBA_dist',
+                'FIELD_PRECISION': 0,
+                'FIELD_TYPE': 1,
+                'FORMULA': '20*log10( \"dist_m\" /10)',
+                'INPUT': outputs['Calculate_distmeter']['OUTPUT'],
+                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+            }
+
         outputs['Calculate_distdba'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(16)
         if feedback.isCanceled():
             return {}
 
+        # calculate_dBA percent of soft ground
+        softpercent = parameters['SoftPercent']/100
+        alg_params = {
+            'FIELD_LENGTH': 5,
+            'FIELD_NAME': 'soft_percent',
+            'FIELD_PRECISION': 0,
+            'FIELD_TYPE': 1,
+            'FORMULA': '{}*((25*log10(\"dist_m\" /10)-2)-(20*log10( \"dist_m\"/10)))'.format(softpercent),
+            'INPUT': outputs['Calculate_distdba']['OUTPUT'],
+            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+        }
+        outputs['Calculate_distdbaPercent'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(17)
+        if feedback.isCanceled():
+            return {}
+            
         # calculate_src
         alg_params = {
             'FIELD_LENGTH': 5,
@@ -340,12 +372,12 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'FIELD_PRECISION': 0,
             'FIELD_TYPE': 0,
             'FORMULA': parameters['NoiseLevelFromSoruce'],
-            'INPUT': outputs['Calculate_distdba']['OUTPUT'],
+            'INPUT': outputs['Calculate_distdbaPercent']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['Calculate_src'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(17)
+        feedback.setCurrentStep(18)
         if feedback.isCanceled():
             return {}
 
@@ -361,7 +393,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         }
         outputs['Calculate_scn'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(18)
+        feedback.setCurrentStep(19)
         if feedback.isCanceled():
             return {}
 
@@ -371,13 +403,13 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'FIELD_NAME': 'dBA_reflect',
             'FIELD_PRECISION': 0,
             'FIELD_TYPE': 1,
-            'FORMULA': parameters['NoiseLevelFromSoruce (2)'],
+            'FORMULA': parameters['ReflectionValue'],
             'INPUT': outputs['Calculate_scn']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['Calculate_reflect'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(19)
+        feedback.setCurrentStep(20)
         if feedback.isCanceled():
             return {}
 
@@ -387,13 +419,13 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'FIELD_NAME': 'dur_hr',
             'FIELD_PRECISION': 0,
             'FIELD_TYPE': 1,
-            'FORMULA': parameters['NoiseLevelFromSoruce (2) (2)'],
+            'FORMULA': parameters['ProjectDuration'],
             'INPUT': outputs['Calculate_reflect']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['Calculate_duration'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(20)
+        feedback.setCurrentStep(21)
         if feedback.isCanceled():
             return {}
 
@@ -403,13 +435,13 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'FIELD_NAME': 'op_hr',
             'FIELD_PRECISION': 0,
             'FIELD_TYPE': 0,
-            'FORMULA': parameters['NoiseLevelFromSoruce (2) (2) (2)'],
+            'FORMULA': parameters['ActivityDuration'],
             'INPUT': outputs['Calculate_duration']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['Calculate_operation'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(21)
+        feedback.setCurrentStep(22)
         if feedback.isCanceled():
             return {}
 
@@ -425,7 +457,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         }
         outputs['Calculate_durationpercent'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(22)
+        feedback.setCurrentStep(23)
         if feedback.isCanceled():
             return {}
 
@@ -441,7 +473,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         }
         outputs['Calculate_correction'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(23)
+        feedback.setCurrentStep(24)
         if feedback.isCanceled():
             return {}
 
@@ -451,13 +483,13 @@ class Calculatebs5228(QgsProcessingAlgorithm):
             'FIELD_NAME': 'dBA_resultant',
             'FIELD_PRECISION': 0,
             'FIELD_TYPE': 1,
-            'FORMULA': '\"dBA_src\" - \"dBA_dist\" - \"dBA_scn\" + \"dBA_reflect\" ',
+            'FORMULA': '\"dBA_src\" - \"dBA_dist\" - \"soft_percent\" - \"dBA_scn\" + \"dBA_reflect\" ',
             'INPUT': outputs['Calculate_correction']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
         }
         outputs['Calculate_resultantdba'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(24)
+        feedback.setCurrentStep(25)
         if feedback.isCanceled():
             return {}
 
@@ -474,7 +506,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         outputs['Calculate_activitydbaD'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['NoiselevelByDistance'] = outputs['Calculate_activitydbaD']['OUTPUT']
 
-        feedback.setCurrentStep(25)
+        feedback.setCurrentStep(26)
         if feedback.isCanceled():
             return {}
 
@@ -491,7 +523,7 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         outputs['Calculate_activitydbaT'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['NoiseLevelByThredsholdLimit'] = outputs['Calculate_activitydbaT']['OUTPUT']
 
-        feedback.setCurrentStep(26)
+        feedback.setCurrentStep(27)
         if feedback.isCanceled():
             return {}
 
@@ -503,18 +535,18 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         outputs['SetLayerStyle'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         # Set layer style
-        alg_params = {
-            'INPUT': outputs['Calculate_activitydbaT']['OUTPUT'],
-            'STYLE': os.path.join(os.path.dirname(__file__), 'style/NoiseLevelThreshold.qml')
-        }
-        outputs['SetLayerStyle'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        #alg_params = {
+            #'INPUT': outputs['Calculate_activitydbaT']['OUTPUT'],
+            #'STYLE': os.path.join(os.path.dirname(__file__), 'style/NoiseLevelThreshold.qml')
+        #}
+        #outputs['SetLayerStyle'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         return results
 
     def name(self):
         return 'Calculate-BS:5228'
 
     def displayName(self):
-        return 'Calculate Noise Level'
+        return 'Calculate Noise Level From Site'
 
     def group(self):
         return ''
