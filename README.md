@@ -24,11 +24,11 @@ This point should be the representative point for all project activities' noise 
 <h3>Receptor Areas/Polygon (residential & industrial)</h3>
 <p>Receptors Layer must be polygon feature with no gemetory errors.
 
-Attribute field & names must be standardized for model calculation steps. Field names (Unique id, landuse) are mandatory for tool. Before running this algorithm, please make test with 'Sample Data' via Get Sampe Data' algorithm. Others can be added for your study purposes optionally.
+Attribute field & names must be standardized for model calculation steps. Field names (Unique id, zone) are mandatory for tool. Before running this algorithm, please make test with 'Sample Data' via Get Sampe Data' algorithm. Others can be added for your study purposes optionally.
 
 Remark:
 Polygon can be 
-- landuse area
+- zone
 - Categories accepted by model: residential, industrial
 - Case Sensitive
 - Wrong attribute and feild names, values will be invalid.
@@ -59,4 +59,12 @@ Vertical Grid Length Meter
 For example:
 - 300 m x 300 m (horizontal x vertical)
 
+<h3>Noise Ground Attenuation</h3>
+<p>Soft ground and Hard ground
+Soft & Hard Ground Percentage can be calculated using landuse area by anyway externally.
+Soft Ground means "the ground can absorb noise level"
+  (e.g. agricultural land, grassland, shrub land, plantation, etc...)
+Hard Ground means "the ground can not absorb noise level"
+  (e.g. surface water, concrete places, paveroad, etc...)
+</p>
 <br><p align="right">Algorithm author: Htetarkar Soe</p><p align="right">Help author: Htetarkar Soe</p></body></html>
