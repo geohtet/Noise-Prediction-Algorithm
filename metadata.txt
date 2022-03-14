@@ -6,7 +6,7 @@
 name=Noise Prediction
 qgisMinimumVersion=3.16
 description=This plugin estimates the noisel level by distances and barriers as BS:5228 standard.
-version=1.0
+version=1.1
 author=Htet Arkar Soe
 email=htetarkar.env.2016@gmail.com
 
@@ -28,7 +28,6 @@ changelog=1.0
   -updated screening calculation steps
   -added more sample data to calculate new parameters
   -updated help 'README.md' in github
-  -upgraded minimum QGIS version to 3.16
 
 # Tags are comma separated with spaces allowed
 tags=python, noise, bs5228

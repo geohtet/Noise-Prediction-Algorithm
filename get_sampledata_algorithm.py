@@ -55,8 +55,15 @@ class GetSampleData(QgsProcessingAlgorithm):
 
         iface.addRasterLayer(Dem,'')
         iface.addVectorLayer(Receptor,'','ogr')
-        iface.addVectorLayer(lulc,'','ogr')
+        landuse = iface.addVectorLayer(lulc,'','ogr')
         iface.addVectorLayer(Stat_lulc,'','ogr')
+        
+        #Set Layer Style
+        alg_params = {
+            'INPUT': landuse,
+            'STYLE': os.path.join(os.path.dirname(__file__), 'style/Receptors_LULC.qml')
+        }
+        processing.run('native:setlayerstyle', alg_params, context=context, feedback=model_feedback, is_child_algorithm=True)
         return results
 
     def name(self):

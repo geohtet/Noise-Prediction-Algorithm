@@ -510,36 +510,12 @@ class Calculatebs5228(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # calculate_ActivitydBA
-        alg_params = {
-            'FIELD_LENGTH': 5,
-            'FIELD_NAME': 'dBA_activity',
-            'FIELD_PRECISION': 0,
-            'FIELD_TYPE': 1,
-            'FORMULA': '\"dBA_resultant\" - \"dBa_corrt\" ',
-            'INPUT': outputs['Calculate_resultantdba']['OUTPUT'],
-            'OUTPUT': parameters['NoiseLevelByThredsholdLimit']
-        }
-        outputs['Calculate_activitydbaT'] = processing.run('native:fieldcalculator', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-        results['NoiseLevelByThredsholdLimit'] = outputs['Calculate_activitydbaT']['OUTPUT']
-
-        feedback.setCurrentStep(27)
-        if feedback.isCanceled():
-            return {}
-
         # Set layer style
         alg_params = {
             'INPUT': outputs['Calculate_activitydbaD']['OUTPUT'],
             'STYLE': os.path.join(os.path.dirname(__file__), 'style/CalculatedNoiseLevel.qml')
         }
         outputs['SetLayerStyle'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        # Set layer style
-        #alg_params = {
-            #'INPUT': outputs['Calculate_activitydbaT']['OUTPUT'],
-            #'STYLE': os.path.join(os.path.dirname(__file__), 'style/NoiseLevelThreshold.qml')
-        #}
-        #outputs['SetLayerStyle'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         return results
 
     def name(self):
